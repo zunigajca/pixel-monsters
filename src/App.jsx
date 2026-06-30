@@ -590,6 +590,9 @@ function App() {
               <div style={{ flex: 1, marginRight: '12px' }}>
                 <div style={{ fontWeight: 'bold', color: '#60a5fa' }}>{m.name} <span style={{ color: '#ca8a04', fontSize: '11px' }}>Lvl {m.level}</span></div>
                 <div style={{ color: '#777', fontSize: '11px', marginTop: '2px' }}>ATK: {m.attack} | HP: {m.hp}/{m.maxHp} | EXP: {m.exp}/{Math.floor(100 * Math.pow(m.level, 1.2))}</div>
+                <div style={{ color: '#c084fc', fontSize: '11px', marginTop: '4px', fontStyle: 'italic', maxWidth: '280px', lineHeight: '1.3' }}>
+                🌟 {MONSTER_TEMPLATES[m.id]?.passive?.desc || "Standard Vanguard"}
+                </div>
                 <div style={{ width: '100%', backgroundColor: '#222', height: '6px', marginTop: '8px', borderRadius: '2px', overflow: 'hidden' }}>
                   <div style={{ width: `${(m.hp / m.maxHp) * 100}%`, backgroundColor: '#22c55e', height: '100%', transition: 'width 0.3s' }} />
                 </div>
@@ -634,6 +637,9 @@ function App() {
               <div style={{ flex: 1, marginRight: '12px' }}>
                 <div style={{ fontWeight: 'bold', color: m.isBoss ? '#ef4444' : '#f43f5e' }}>{m.name} <span style={{ color: '#71717a', fontSize: '11px' }}>Lvl {m.level}</span></div>
                 <div style={{ color: '#777', fontSize: '11px', marginTop: '2px' }}>ATK: {m.attack} | HP: {m.hp}/{m.maxHp}</div>
+                <div style={{ color: m.isBoss ? '#f87171' : '#f43f5e', fontSize: '11px', marginTop: '4px', fontStyle: 'italic', maxWidth: '280px', lineHeight: '1.3', opacity: 0.85 }}>
+                  💀 {m.passive?.desc || MONSTER_TEMPLATES[m.id]?.passive?.desc || "Aggressive Vanguard"}
+                </div>
                 <div style={{ width: '100%', backgroundColor: '#222', height: '6px', marginTop: '8px', borderRadius: '2px', overflow: 'hidden' }}>
                   <div style={{ width: `${(m.hp / m.maxHp) * 100}%`, backgroundColor: '#ef4444', height: '100%', transition: 'width 0.3s' }} />
                 </div>
