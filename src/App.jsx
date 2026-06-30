@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { PixelSprite } from './PixelSprite';
 import { SOUNDS } from './sound';
 
-
-
 const MONSTER_TEMPLATES = {
   slime: { id: 'slime', name: 'Slime-bough', type: 'Tank', maxHp: 60, attack: 8, speed: 2, 
     passive: { name: "Sticky Armor", desc: "Reduces attacker speed by 2 when hit. Cooldown: 2 turns.", cooldown: 2 } 
@@ -31,6 +29,18 @@ const MONSTER_TEMPLATES = {
   },
   finne: { id: 'finne', name: 'Finne-Chomper', type: 'Striker', maxHp: 48, attack: 16, speed: 6, 
     passive: { name: "Blood Hunt", desc: "Deals +6 DMG if target is below half HP. Permanent Passive.", cooldown: 0 } 
+  },
+  gargoyle: { id: 'gargoyle', name: 'Stone-Gargoyle', type: 'Colossus', maxHp: 70, attack: 10, speed: 3,
+    passive: { name: "Slate Aegis", desc: "Gains a 15 HP shield at start of battle.", cooldown: 99 }
+  },
+  wraith: { id: 'wraith', name: 'Crypt-Wraith', type: 'Infiltrator', maxHp: 38, attack: 17, speed: 6,
+    passive: { name: "Terror Shroud", desc: "Reduces target attack by 4 on hit for 1 turn. Cooldown: 3 turns.", duration: 1, cooldown: 3 }
+  },
+  shadowfang: { id: 'shadowfang', name: 'Shadow-Fang', type: 'Assassin', maxHp: 42, attack: 15, speed: 8,
+    passive: { name: "Umbral Rend", desc: "Deals bonus damage equal to 15% of target's current HP. Cooldown: 3 turns.", cooldown: 3 }
+  },
+  plaguerat: { id: 'plaguerat', name: 'Plague-Rat', type: 'Debuffer', maxHp: 36, attack: 11, speed: 6,
+    passive: { name: "Toxic Sepsis", desc: "Inflicts poison dealing 5 damage per turn for 3 turns. Cooldown: 4 turns.", duration: 3, cooldown: 4 }
   }
 };
 
@@ -50,7 +60,6 @@ function App() {
   const [hasChosenStarter, setHasChosenStarter] = useState(false);
   const [playerTeam, setPlayerTeam] = useState([]);
   const [enemyTeam, setEnemyTeam] = useState([]);
-  const [battleLogs, setBattleLogs] = useState([]);
   const [isFighting, setIsFighting] = useState(false);
   const [winner, setWinner] = useState(null);
   const [activeAnims, setActiveAnims] = useState({});
@@ -72,7 +81,6 @@ function App() {
   // Trainer Level 1-2: 2 Slots | Level 3-4: 3 Slots | Level 5+: 4 Slots
   const maxTeamSlots = Math.min(4, 2 + Math.floor((trainerLvl - 1) / 2));
 
-  // Dynamic Scaling Enemy Wave Generator
   const generateEnemyWave = (targetWave) => {
     if (targetWave % 10 === 0) {
       const BOSS_TEMPLATES = {
@@ -106,7 +114,8 @@ function App() {
         isBoss: true,
         key: `boss-${targetWave}-${bossTemplate.id}`,
         skillCd: 0,
-        skillActiveDur: 0
+        skillActiveDur: 0,
+        speedMod: 0
       };
       
       setEnemyTeam([bossMonster]);
@@ -129,24 +138,12 @@ function App() {
           attack: Math.floor(baseTemplate.attack * statMultiplier),
           level: enemyLevel,
           isBoss: false,
-          key: `e-${i}-${randKey}`
+          key: `e-${i}-${randKey}`,
+          speedMod: 0
         });
       }
       setEnemyTeam(newEnemyTeam);
     }
-  };
-
-  const handleSelectStarter = (pack) => {
-    const chosen = pack.monsters.map((id, index) => ({
-      ...MONSTER_TEMPLATES[id],
-      hp: MONSTER_TEMPLATES[id].maxHp,
-      level: 1,
-      exp: 0,
-      key: `p-${index}-${id}`
-    }));
-    setPlayerTeam(chosen);
-    setHasChosenStarter(true);
-    SOUNDS.success();
   };
 
   useEffect(() => {
@@ -174,7 +171,7 @@ function App() {
   const buyTrainerExp = (cost) => {
     if (gold < cost) return;
     setGold(g => g - cost);
-    SOUNDS.coin(); // 🪙 Play arcade coin trigger
+    SOUNDS.coin(); 
     
     setTrainerExp(prevExp => {
       let totalExp = prevExp + 50;
@@ -185,7 +182,7 @@ function App() {
         currentLvl++;
         setTrainerLvl(currentLvl);
         triggerFloatingText('global-trainer', 'LEVEL UP!', '#eab308');
-        SOUNDS.success(); // 🎉 Triumphant level up audio spin
+        SOUNDS.success(); 
         expNeeded = Math.floor(100 * Math.pow(currentLvl, 1.2));
       }
       return totalExp;
@@ -195,7 +192,7 @@ function App() {
   const buyMonsterExp = (monsterKey, cost) => {
     if (gold < cost) return;
     setGold(g => g - cost);
-    SOUNDS.coin(); // 🪙 Play arcade coin trigger
+    SOUNDS.coin(); 
 
     setPlayerTeam(prev => prev.map(m => {
       if (m.key !== monsterKey) return m;
@@ -212,7 +209,7 @@ function App() {
         newAtk += 2;
         newMaxHp += 5;
         triggerFloatingText(m.key, 'LEVEL UP!', '#ca8a04');
-        SOUNDS.success(); // 🎉 Level up celebrate spin
+        SOUNDS.success(); 
         expNeeded = Math.floor(100 * Math.pow(newLvl, 1.2));
       }
 
@@ -227,7 +224,7 @@ function App() {
 
   const finalizeRecruitment = (monsterId, cost) => {
     setGold(g => g - cost);
-    SOUNDS.coin(); // 🪙 Play arcade coin trigger
+    SOUNDS.coin(); 
     const template = MONSTER_TEMPLATES[monsterId];
 
     const newMonster = {
@@ -235,7 +232,8 @@ function App() {
       hp: template.maxHp,
       level: trainerLvl,
       exp: 0,
-      key: `p-${Date.now()}-${monsterId}`
+      key: `p-${Date.now()}-${monsterId}`,
+      speedMod: 0
     };
 
     setPlayerTeam([...playerTeam, newMonster]);
@@ -245,14 +243,28 @@ function App() {
   const startAutoBattle = async () => {
     setIsFighting(true);
     
-    let pTeam = playerTeam.map(m => ({ ...m, hp: m.maxHp, skillCd: 0, skillActiveDur: 0 })); 
-    let eTeam = [...enemyTeam].map(m => ({ ...m, skillCd: 0, skillActiveDur: 0 }));
+    let pTeam = playerTeam.map(m => {
+      let initialShield = 0;
+      if (m.id === 'gargoyle') {
+        initialShield = 15;
+      }
+      return { ...m, hp: m.maxHp, shield: initialShield, skillCd: 0, skillActiveDur: 0, speedMod: 0, attackMod: 0, poisonTurns: 0 };
+    });
+
+    let eTeam = [...enemyTeam].map(m => {
+      let initialShield = 0;
+      if (m.id === 'gargoyle') {
+        initialShield = 15;
+      }
+      return { ...m, shield: initialShield, skillCd: 0, skillActiveDur: 0, speedMod: 0, attackMod: 0, poisonTurns: 0 };
+    });
+
     setPlayerTeam(pTeam);
     
     while (pTeam.some(m => m.hp > 0) && eTeam.some(m => m.hp > 0)) {
       let order = [
         ...pTeam.filter(m => m.hp > 0).map(m => {
-          let currentSpeed = m.speed;
+          let currentSpeed = m.speed + (m.speedMod || 0);
           if (m.id === 'fox' && m.skillActiveDur > 0) currentSpeed += 6;
           const aeroActive = pTeam.some(a => a.id === 'aero' && a.skillActiveDur > 0);
           if (aeroActive) currentSpeed += 3;
@@ -261,7 +273,7 @@ function App() {
           return { ...m, currentSpeed, team: 'player' };
         }),
         ...eTeam.filter(m => m.hp > 0).map(m => {
-          let currentSpeed = m.speed;
+          let currentSpeed = m.speed + (m.speedMod || 0);
           if (m.id === 'fox' && m.skillActiveDur > 0) currentSpeed += 6;
           const aeroActive = eTeam.some(a => a.id === 'aero' && a.skillActiveDur > 0);
           if (aeroActive) currentSpeed += 3;
@@ -278,16 +290,34 @@ function App() {
         
         if (!activeAttacker) continue;
 
-        let ownTeamList = attacker.team === 'player' ? pTeam : eTeam;
         let opposingTeamList = attacker.team === 'player' ? eTeam : pTeam;
         let target = opposingTeamList.find(m => m.hp > 0);
         if (!target) break;
 
+        // Apply Poison ticks at the start of attacker's turn
+        if (activeAttacker.poisonTurns > 0) {
+          activeAttacker.hp = Math.max(0, activeAttacker.hp - 5);
+          activeAttacker.poisonTurns--;
+          triggerFloatingText(activeAttacker.key, '-5 🤢 POISON', '#22c55e');
+          triggerAnimation(activeAttacker.key, 'anim-shake');
+          if (activeAttacker.hp <= 0) {
+            triggerFloatingText(activeAttacker.key, '💀 FAINTED', '#71717a');
+            setPlayerTeam([...pTeam]);
+            setEnemyTeam([...eTeam]);
+            continue; 
+          }
+        }
+
         if (activeAttacker.skillActiveDur > 0) {
           activeAttacker.skillActiveDur--;
+          if (activeAttacker.skillActiveDur === 0 && activeAttacker.id === 'wraith') {
+            // Restore target attack modifiers from Terror Shroud when it expires
+            if (target) target.attackMod = (target.attackMod || 0) + 4;
+          }
         }
         if (activeAttacker.skillCd > 0) activeAttacker.skillCd--;
 
+        // Passives logic
         if (activeAttacker.skillCd === 0 && activeAttacker.passive) {
           const spec = activeAttacker.passive;
           
@@ -301,7 +331,7 @@ function App() {
             activeAttacker.skillCd = spec.cooldown;
             triggerFloatingText(activeAttacker.key, '+25 TIME REWIND', '#3b82f6');
           }
-          else if (['fox', 'golem', 'ghost', 'aero', 'pup'].includes(activeAttacker.id)) {
+          else if (['fox', 'golem', 'ghost', 'aero', 'pup', 'wraith', 'plaguerat', 'shadowfang'].includes(activeAttacker.id)) {
             activeAttacker.skillActiveDur = spec.duration;
             activeAttacker.skillCd = spec.cooldown;
             triggerFloatingText(activeAttacker.key, `⚡ ${spec.name}`, '#eab308');
@@ -322,7 +352,8 @@ function App() {
         triggerAnimation(activeAttacker.key, attacker.team === 'player' ? 'anim-dash-right' : 'anim-dash-left');
         await new Promise(r => setTimeout(r, 150));
 
-        let baseDamage = activeAttacker.attack + Math.floor(activeAttacker.level * 1.5);
+        let totalAttackerAtk = activeAttacker.attack + (activeAttacker.attackMod || 0);
+        let baseDamage = totalAttackerAtk + Math.floor(activeAttacker.level * 1.5);
         
         if (activeAttacker.id === 'kraken' && activeAttacker.skillActiveDur > 0) {
           baseDamage += 5;
@@ -346,6 +377,21 @@ function App() {
           triggerFloatingText(activeAttacker.key, '🦈 BLOOD HUNT', '#ef4444');
         }
 
+        // Active combat passive impacts for Shadowfang, Wraith, Plaguerat
+        if (activeAttacker.id === 'shadowfang' && activeAttacker.skillActiveDur > 0) {
+          const bonus = Math.floor(target.hp * 0.15);
+          baseDamage += bonus;
+          triggerFloatingText(activeAttacker.key, `🗡️ UMBRAL REND (+${bonus})`, '#3b82f6');
+        }
+        if (activeAttacker.id === 'wraith' && activeAttacker.skillActiveDur > 0) {
+          target.attackMod = (target.attackMod || 0) - 4;
+          triggerFloatingText(target.key, '🍃 WEAKENED (-4 ATK)', '#a855f7');
+        }
+        if (activeAttacker.id === 'plaguerat' && activeAttacker.skillActiveDur > 0) {
+          target.poisonTurns = 3;
+          triggerFloatingText(target.key, '🤢 SEPSIS INFLICTED', '#22c55e');
+        }
+
         let isDodged = false;
         if (target.id === 'ghost' && target.skillActiveDur > 0) {
           target.skillActiveDur = 0; 
@@ -358,22 +404,37 @@ function App() {
         }
 
         if (baseDamage > 0) {
-          target.hp = Math.max(0, target.hp - baseDamage);
-          triggerFloatingText(target.key, `-${baseDamage}`, '#ef4444');
-          SOUNDS.hit(); // ⚔️ Crisp retro impact sound
-          
-          if (target.id === 'slime' && target.skillCd === 0 && activeAttacker.hp > 0) {
-            activeAttacker.speed = Math.max(1, activeAttacker.speed - 2);
-            target.skillCd = target.passive.cooldown;
-            triggerFloatingText(activeAttacker.key, '🦠 SLIMED! (-2 SPD)', '#22c55e');
+          // Handle Shields (Gargoyle)
+          if ((target.shield || 0) > 0) {
+            if (baseDamage <= target.shield) {
+              target.shield -= baseDamage;
+              triggerFloatingText(target.key, `🛡️ BLOCK (-${baseDamage} Shield)`, '#3b82f6');
+              baseDamage = 0;
+            } else {
+              baseDamage -= target.shield;
+              triggerFloatingText(target.key, `💥 SHIELD BROKE (-${target.shield} Shield)`, '#3b82f6');
+              target.shield = 0;
+            }
           }
-          
-          triggerAnimation(target.key, 'anim-shake');
+
+          if (baseDamage > 0) {
+            target.hp = Math.max(0, target.hp - baseDamage);
+            triggerFloatingText(target.key, `-${baseDamage}`, '#ef4444');
+            SOUNDS.hit(); 
+            
+            if (target.id === 'slime' && target.skillCd === 0 && activeAttacker.hp > 0) {
+              activeAttacker.speed = Math.max(1, activeAttacker.speed - 2);
+              target.skillCd = target.passive.cooldown;
+              triggerFloatingText(activeAttacker.key, '🦠 SLIMED! (-2 SPD)', '#22c55e');
+            }
+            
+            triggerAnimation(target.key, 'anim-shake');
+          }
         }
 
         if (target.hp <= 0 && !isDodged) {
           triggerFloatingText(target.key, '💀 FAINTED', '#71717a');
-          SOUNDS.hurt(); // 💥 Heavy crunch sound on fainting
+          SOUNDS.hurt(); 
         }
 
         setPlayerTeam([...pTeam]);
@@ -386,7 +447,7 @@ function App() {
     const isBossWave = wave % 10 === 0;
 
     if (playerWon) {
-      SOUNDS.success(); // 🎉 Victory sound cascade
+      SOUNDS.success(); 
       const baseGold = Math.floor((40 + Math.floor(Math.random() * 25)) * (1 + wave * 0.01));
       const bossBonusGold = isBossWave ? 150 : 0;
       const totalGoldGained = baseGold + bossBonusGold;
@@ -431,7 +492,7 @@ function App() {
       setMatchSummary({ outcome: 'VICTORY', gold: totalGoldGained, exp: totalTrainerExpGained });
       setShowResultScreen(true);
     } else {
-      SOUNDS.hurt(); // 💥 Heavy loss thud
+      SOUNDS.hurt(); 
       const pityGold = 15 + wave + Math.floor(Math.random() * 10);
       setGold(g => g + pityGold);
 
@@ -458,7 +519,7 @@ function App() {
         setSelectedDraftIds(prev => prev.filter(x => x !== id));
       } else if (selectedDraftIds.length < 3) {
         setSelectedDraftIds(prev => [...prev, id]);
-        SOUNDS.hit(); // Quick select feedback blip
+        SOUNDS.hit(); 
       }
     };
 
@@ -469,7 +530,8 @@ function App() {
         hp: MONSTER_TEMPLATES[id].maxHp,
         level: 1,
         exp: 0,
-        key: `p-${index}-${id}`
+        key: `p-${index}-${id}`,
+        speedMod: 0
       }));
       setPlayerTeam(chosen);
       setHasChosenStarter(true);
@@ -481,7 +543,7 @@ function App() {
         <h1 style={{ color: '#eab308', fontSize: '28px', marginBottom: '4px' }}>BUILD YOUR STARTER SQUAD</h1>
         <p style={{ color: '#aaa', fontSize: '13px', marginBottom: '24px' }}>Select exactly <span style={{ color: '#eab308', fontWeight: 'bold' }}>3 monsters</span> to form your unique vanguard line ({selectedDraftIds.length}/3 selected)</p>
         
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '900px', marginBottom: '30px' }}>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '940px', marginBottom: '30px' }}>
           {Object.keys(MONSTER_TEMPLATES).map((key) => {
             const meta = MONSTER_TEMPLATES[key];
             const isSelected = selectedDraftIds.includes(key);
@@ -492,7 +554,7 @@ function App() {
                 style={{ 
                   border: isSelected ? '2px solid #eab308' : '2px solid #333', 
                   backgroundColor: isSelected ? '#26200a' : '#1a1a1a', 
-                  borderRadius: '10px', padding: '16px', width: '180px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s' 
+                  borderRadius: '10px', padding: '16px', width: '170px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s' 
                 }}
               >
                 <PixelSprite spriteId={meta.id} size={48} />
@@ -524,7 +586,7 @@ function App() {
     updated[index] = updated[targetIndex];
     updated[targetIndex] = temporary;
     setPlayerTeam(updated);
-    SOUNDS.hit(); // Simple order swap tap
+    SOUNDS.hit(); 
   };
 
   return (
@@ -541,7 +603,6 @@ function App() {
         </div>
 
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          {/* 🎵 Retro BGM Toggle Switch Button */}
           <button 
             onClick={toggleBGM}
             style={{ 
@@ -566,7 +627,6 @@ function App() {
           </div>
         </div>
 
-        {/* Floating Text anchor for global trainer rewards */}
         {floatingTexts['global-trainer'] && (
           <div style={{ position: 'absolute', right: '150px', top: '10px', color: floatingTexts['global-trainer'].color, fontWeight: '900', fontSize: '20px', zIndex: 50 }}>
             {floatingTexts['global-trainer'].text}
@@ -591,14 +651,13 @@ function App() {
                 <div style={{ fontWeight: 'bold', color: '#60a5fa' }}>{m.name} <span style={{ color: '#ca8a04', fontSize: '11px' }}>Lvl {m.level}</span></div>
                 <div style={{ color: '#777', fontSize: '11px', marginTop: '2px' }}>ATK: {m.attack} | HP: {m.hp}/{m.maxHp} | EXP: {m.exp}/{Math.floor(100 * Math.pow(m.level, 1.2))}</div>
                 <div style={{ color: '#c084fc', fontSize: '11px', marginTop: '4px', fontStyle: 'italic', maxWidth: '280px', lineHeight: '1.3' }}>
-                🌟 {MONSTER_TEMPLATES[m.id]?.passive?.desc || "Standard Vanguard"}
+                  🌟 {MONSTER_TEMPLATES[m.id]?.passive?.desc || "Standard Vanguard"}
                 </div>
                 <div style={{ width: '100%', backgroundColor: '#222', height: '6px', marginTop: '8px', borderRadius: '2px', overflow: 'hidden' }}>
                   <div style={{ width: `${(m.hp / m.maxHp) * 100}%`, backgroundColor: '#22c55e', height: '100%', transition: 'width 0.3s' }} />
                 </div>
               </div>
 
-              {/* OVERLAY WRAPPER FOR FLOATING TEXT */}
               <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '64px', height: '64px' }}>
                 <PixelSprite spriteId={m.id} size={64} animationClass={activeAnims[m.key] || ""} />
                 {floatingTexts[m.key] && (
@@ -645,7 +704,6 @@ function App() {
                 </div>
               </div>
 
-              {/* OVERLAY WRAPPER FOR OPPONENT FLOATING TEXT */}
               <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: m.isBoss ? '110px' : '64px' }}>
                 <PixelSprite spriteId={m.id} size={m.isBoss ? 110 : 64} animationClass={activeAnims[m.key] || ""} />
                 {floatingTexts[m.key] && (
@@ -689,7 +747,7 @@ function App() {
             </div>
             <div style={{ borderRight: '1px solid #222', paddingRight: '20px', flex: '1 1 200px' }}>
               <div style={{ fontSize: '11px', color: '#ca8a04', fontWeight: 'bold', textTransform: 'uppercase' }}>Acquire New Squad Members</div>
-              <button disabled={isFighting || playerTeam.length >= maxTeamSlots || gold < 75} onClick={() => openRecruitSelection(75)} style={{ marginTop: '8px', padding: '10px', backgroundColor: '#0a0a0c', border: '1px solid #ca8a04', color: '#fff', fontSize: '12px', borderRadius: '6px', cursor: 'pointer', width: '100%', opacity: playerTeam.length >= maxTeamSlots ? 0.4 : 1 }}>🍳 Call Mercenary Ally (75g)</button>
+              <button disabled={isFighting || playerTeam.length >= maxTeamSlots || gold < 75} onClick={() => openRecruitSelection(75)} style={{ marginTop: '8px', padding: '10px', backgroundColor: '#0a0a0c', border: '1px solid #ca8a04', color: '#fff', fontSize: '12px', borderRadius: '6px', cursor: 'pointer', width: '100%', opacity: playerTeam.length >= maxTeamSlots ? 0.4 : 1 }}>🍳 Call Monster Ally (75g)</button>
             </div>
             <div style={{ flex: '2 1 340px' }}>
               <div style={{ fontSize: '11px', color: '#22c55e', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '8px' }}>Hyper-Training Center (+50 EXP for 50g)</div>
