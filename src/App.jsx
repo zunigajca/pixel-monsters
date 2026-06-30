@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { PixelSprite } from './PixelSprite';
+import { SOUNDS } from './sound';
+
+
 
 const MONSTER_TEMPLATES = {
   slime: { id: 'slime', name: 'Slime-bough', type: 'Tank', maxHp: 60, attack: 8, speed: 2, 
@@ -32,6 +35,18 @@ const MONSTER_TEMPLATES = {
 };
 
 function App() {
+  const [bgmOn, setBgmOn] = useState(false);
+
+  const toggleBGM = () => {
+    if (bgmOn) {
+      SOUNDS.stopBGM();
+      setBgmOn(false);
+    } else {
+      SOUNDS.startBGM();
+      setBgmOn(true);
+    }
+  };
+
   const [hasChosenStarter, setHasChosenStarter] = useState(false);
   const [playerTeam, setPlayerTeam] = useState([]);
   const [enemyTeam, setEnemyTeam] = useState([]);
@@ -131,6 +146,7 @@ function App() {
     }));
     setPlayerTeam(chosen);
     setHasChosenStarter(true);
+    SOUNDS.success();
   };
 
   useEffect(() => {
@@ -158,6 +174,7 @@ function App() {
   const buyTrainerExp = (cost) => {
     if (gold < cost) return;
     setGold(g => g - cost);
+    SOUNDS.coin(); // 🪙 Play arcade coin trigger
     
     setTrainerExp(prevExp => {
       let totalExp = prevExp + 50;
@@ -168,6 +185,7 @@ function App() {
         currentLvl++;
         setTrainerLvl(currentLvl);
         triggerFloatingText('global-trainer', 'LEVEL UP!', '#eab308');
+        SOUNDS.success(); // 🎉 Triumphant level up audio spin
         expNeeded = Math.floor(100 * Math.pow(currentLvl, 1.2));
       }
       return totalExp;
@@ -177,6 +195,7 @@ function App() {
   const buyMonsterExp = (monsterKey, cost) => {
     if (gold < cost) return;
     setGold(g => g - cost);
+    SOUNDS.coin(); // 🪙 Play arcade coin trigger
 
     setPlayerTeam(prev => prev.map(m => {
       if (m.key !== monsterKey) return m;
@@ -193,6 +212,7 @@ function App() {
         newAtk += 2;
         newMaxHp += 5;
         triggerFloatingText(m.key, 'LEVEL UP!', '#ca8a04');
+        SOUNDS.success(); // 🎉 Level up celebrate spin
         expNeeded = Math.floor(100 * Math.pow(newLvl, 1.2));
       }
 
@@ -207,6 +227,7 @@ function App() {
 
   const finalizeRecruitment = (monsterId, cost) => {
     setGold(g => g - cost);
+    SOUNDS.coin(); // 🪙 Play arcade coin trigger
     const template = MONSTER_TEMPLATES[monsterId];
 
     const newMonster = {
@@ -339,6 +360,7 @@ function App() {
         if (baseDamage > 0) {
           target.hp = Math.max(0, target.hp - baseDamage);
           triggerFloatingText(target.key, `-${baseDamage}`, '#ef4444');
+          SOUNDS.hit(); // ⚔️ Crisp retro impact sound
           
           if (target.id === 'slime' && target.skillCd === 0 && activeAttacker.hp > 0) {
             activeAttacker.speed = Math.max(1, activeAttacker.speed - 2);
@@ -351,6 +373,7 @@ function App() {
 
         if (target.hp <= 0 && !isDodged) {
           triggerFloatingText(target.key, '💀 FAINTED', '#71717a');
+          SOUNDS.hurt(); // 💥 Heavy crunch sound on fainting
         }
 
         setPlayerTeam([...pTeam]);
@@ -363,6 +386,7 @@ function App() {
     const isBossWave = wave % 10 === 0;
 
     if (playerWon) {
+      SOUNDS.success(); // 🎉 Victory sound cascade
       const baseGold = Math.floor((40 + Math.floor(Math.random() * 25)) * (1 + wave * 0.01));
       const bossBonusGold = isBossWave ? 150 : 0;
       const totalGoldGained = baseGold + bossBonusGold;
@@ -407,6 +431,7 @@ function App() {
       setMatchSummary({ outcome: 'VICTORY', gold: totalGoldGained, exp: totalTrainerExpGained });
       setShowResultScreen(true);
     } else {
+      SOUNDS.hurt(); // 💥 Heavy loss thud
       const pityGold = 15 + wave + Math.floor(Math.random() * 10);
       setGold(g => g + pityGold);
 
@@ -433,6 +458,7 @@ function App() {
         setSelectedDraftIds(prev => prev.filter(x => x !== id));
       } else if (selectedDraftIds.length < 3) {
         setSelectedDraftIds(prev => [...prev, id]);
+        SOUNDS.hit(); // Quick select feedback blip
       }
     };
 
@@ -447,6 +473,7 @@ function App() {
       }));
       setPlayerTeam(chosen);
       setHasChosenStarter(true);
+      SOUNDS.success();
     };
 
     return (
@@ -497,6 +524,7 @@ function App() {
     updated[index] = updated[targetIndex];
     updated[targetIndex] = temporary;
     setPlayerTeam(updated);
+    SOUNDS.hit(); // Simple order swap tap
   };
 
   return (
@@ -511,8 +539,31 @@ function App() {
             <span>👑 Trainer Lvl {trainerLvl} Progress: <strong>{trainerExp} / {Math.floor(100 * Math.pow(trainerLvl, 1.2))} EXP</strong> (Max Slots: {maxTeamSlots})</span>
           </div>
         </div>
-        <div style={{ backgroundColor: '#1a1a1f', padding: '10px 20px', borderRadius: '8px', border: '1px solid #ca8a04', color: '#eab308', fontWeight: 'bold', fontSize: '16px' }}>
-          🪙 {gold}g
+
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          {/* 🎵 Retro BGM Toggle Switch Button */}
+          <button 
+            onClick={toggleBGM}
+            style={{ 
+              backgroundColor: bgmOn ? '#16a34a' : '#27272a', 
+              border: bgmOn ? '1px solid #22c55e' : '1px solid #4b5563', 
+              color: '#fff', 
+              padding: '10px 14px', 
+              borderRadius: '8px', 
+              cursor: 'pointer', 
+              fontWeight: 'bold',
+              fontSize: '13px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            {bgmOn ? '🎵 BGM: ON' : '🔇 BGM: OFF'}
+          </button>
+
+          <div style={{ backgroundColor: '#1a1a1f', padding: '10px 20px', borderRadius: '8px', border: '1px solid #ca8a04', color: '#eab308', fontWeight: 'bold', fontSize: '16px' }}>
+            🪙 {gold}g
+          </div>
         </div>
 
         {/* Floating Text anchor for global trainer rewards */}
