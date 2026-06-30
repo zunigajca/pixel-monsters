@@ -1,16 +1,32 @@
-# React + Vite
+# ⚔️ Pixel-Monsters Arena
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A lightweight, retro-inspired incremental auto-battler built entirely in React. Assemble a squad of pocket monsters, strategize your lineup order, and challenge scaling waves of enemy vanguards and monumental cosmic bosses.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🎮 Game Features
 
-## React Compiler
+*   **Strategic Auto-Combat:** Position your squad carefully. Monsters automatically clash with enemy vanguards based on your lineup order in automated, fast-paced tactical rounds.
+*   **Dynamic Wave Scaling:** Experience fully balanced progression. Both **Gold** and **EXP** rewards scale organically the deeper you venture into the arena, preventing late-game grinding stagnation.
+*   **The Titan Milestones:** Every 10 waves, your squad face off against heavy-hitting, custom-rendered epic bosses:
+    *   🌌 **Nebula-Kraken:** A cosmic deity radiating deep violet and neon magenta.
+    *   ⚙️ **Rust-Behemoth:** A hulking industrial mecha built from reinforced plates.
+    *   ⏳ **Chrono-Specter:** An ethereal, floating phantom manipulation clock-face geometry.
+*   **Trainer Guild Progression:** Invest hard-earned gold back into your squad at the Training Center or hit the Academy to level up your Trainer Rank and unlock more monster deployment slots.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 🎨 Custom Pixel Rendering Engine
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Unlike traditional games that rely on bulky image assets, **Pixel-Monsters Arena** utilizes a lightweight, CSS-driven matrix rendering engine. 
+
+Monsters and Titans are mapped directly as 16x16 coordinate grids inside `sprites.js`. The engine matches custom alphanumeric and numerical IDs against a centralized hexadecimal `COLOR_MAP`, dynamically injecting optimized inline styles to generate sharp, responsive pixel art on the fly.
+
+---
+
+## 🛠️ Tech Stack
+
+*   **Framework:** React (Vite)
+*   **Styling:** Tailwind CSS
+*   **State Management:** React Hooks (`useState`, `useEffect`)
+*   **Graphics:** Dynamic Matrix Color-Mapping Engine (No external asset overhead)
