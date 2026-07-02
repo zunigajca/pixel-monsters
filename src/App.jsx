@@ -88,7 +88,7 @@ function App() {
         const baseTemplate = MONSTER_TEMPLATES[randKey];
         newEnemyTeam.push({
           ...baseTemplate,
-          name: `Vanguard ${baseTemplate.name}`,
+          name: `${baseTemplate.name}`,
           maxHp: Math.floor(baseTemplate.maxHp * statMultiplier),
           hp: Math.floor(baseTemplate.maxHp * statMultiplier),
           attack: Math.floor(baseTemplate.attack * statMultiplier),
@@ -656,7 +656,7 @@ function App() {
                       <div style={{ fontWeight: 'bold', color: '#60a5fa' }}>{m.name} <span style={{ color: '#ca8a04', fontSize: '11px' }}>Lvl {m.level}</span></div>
                       <div style={{ color: '#777', fontSize: '11px', marginTop: '2px' }}>ATK: {m.attack} | HP: {m.hp}/{m.maxHp} | EXP: {m.exp}/{Math.floor(100 * Math.pow(m.level, 1.2))}</div>
                       <div style={{ color: '#c084fc', fontSize: '11px', marginTop: '4px', fontStyle: 'italic', maxWidth: '280px', lineHeight: '1.3' }}>
-                        🌟 {MONSTER_TEMPLATES[m.id]?.passive?.desc || "Standard Vanguard"}
+                        🌟 {MONSTER_TEMPLATES[m.id]?.passive?.desc || "Standard Pixel Monster"}
                       </div>
                       <div style={{ width: '100%', backgroundColor: '#222', height: '6px', marginTop: '8px', borderRadius: '2px', overflow: 'hidden' }}>
                         <div style={{ width: `${(m.hp / m.maxHp) * 100}%`, backgroundColor: '#22c55e', height: '100%', transition: 'width 0.3s' }} />
@@ -706,7 +706,7 @@ function App() {
 
               {/* RIGHT COLUMN: ENEMY WAVE HUD */}
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px', backgroundColor: 'rgba(24, 18, 18, 0.6)', padding: '16px', borderRadius: '12px', border: '1px solid #3a1c1c' }}>
-                <h3 style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#f43f5e', letterSpacing: '0.5px' }}>OPPOSING VANGUARD (WAVE {wave})</h3>
+                <h3 style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#f43f5e', letterSpacing: '0.5px' }}>OPPOSING PIXEL MONSTERS (WAVE {wave})</h3>
                 {enemyTeam.map((m) => (
                   <div key={m.key} style={{ display: 'flex', backgroundColor: '#0c0808', padding: '12px', borderRadius: '8px', border: '1px solid #2a1414', alignItems: 'center' }}>
                     <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '64px', height: '64px', marginRight: '12px' }}>
@@ -746,7 +746,7 @@ function App() {
 
               <div style={{ backgroundColor: '#0a0a0c', border: '1px solid #222', padding: '16px', borderRadius: '8px', width: '240px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div>
-                  <div style={{ fontWeight: 'bold', fontSize: '14px' }}>🤝 Recruit New Vanguard</div>
+                  <div style={{ fontWeight: 'bold', fontSize: '14px' }}>🤝 Recruit New Pixel Monster</div>
                   <div style={{ color: '#737373', fontSize: '11px', marginTop: '4px' }}>Draft another squad monster to deploy into vacant slots.</div>
                 </div>
                 <button disabled={gold < 120 || playerTeam.length >= maxTeamSlots || isFighting} onClick={() => openRecruitSelection(120)} style={{ marginTop: '12px', padding: '8px', backgroundColor: (gold >= 120 && playerTeam.length < maxTeamSlots) ? '#16a34a' : '#222', color: (gold >= 120 && playerTeam.length < maxTeamSlots) ? '#fff' : '#444', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: (gold >= 120 && playerTeam.length < maxTeamSlots) ? 'pointer' : 'not-allowed', fontSize: '12px' }}>
@@ -775,7 +775,7 @@ function App() {
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
           <div style={{ backgroundColor: '#151518', border: '2px solid #ca8a04', borderRadius: '12px', padding: '24px', maxWidth: '700px', width: '90%' }}>
             <h3 style={{ margin: '0 0 4px 0', color: '#eab308' }}>RECRUIT SQUAD MEMBER</h3>
-            <p style={{ color: '#a3a3a3', fontSize: '12px', margin: '0 0 20px 0' }}>Select a vanguard monster archetype to buy and add to your line.</p>
+            <p style={{ color: '#a3a3a3', fontSize: '12px', margin: '0 0 20px 0' }}>Select a pixel monster to buy and add to your line.</p>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', maxHeight: '360px', overflowY: 'auto', paddingRight: '4px' }}>
               {Object.keys(MONSTER_TEMPLATES).map((key) => {
                 const meta = MONSTER_TEMPLATES[key];
